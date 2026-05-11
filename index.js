@@ -1,32 +1,35 @@
-// index.js
-// where your node app starts
+const express = require('express');
+const app = express();
+const cors = require('cors');
+app.use(cors({optionsSuccessStatus: 200}));
 
-// init project
-var express = require('express');
-var app = express();
-
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC 
-var cors = require('cors');
-app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 204
-
-// http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
-// http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
+app.get("/", (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
+// Tor main logic - 8ta test pass korabe
+app.get("/api/:date?", (req, res) => {
+  let dateString = req.params.date;
+  
+  // Test 7,8: Empty date = current time
+  if (!dateString) {
+    let now = new Date();
+    return res.json({ unix: now.getTime(), utc: now.toUTCString() });
+  }
 
-// your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+  // Test 2,3,4,5: Check unix timestamp or date string
+  let date = !isNaN(dateString) ? new Date(parseInt(dateString)) : new Date(dateString);
+
+  // Test 6: Invalid date
+  if (date.toString() === "Invalid Date") {
+    return res.json({ error: "Invalid Date" });
+  }
+
+  res.json({ unix: date.getTime(), utc: date.toUTCString() });
 });
 
-
-
-// Listen on port set in environment variable or default to 3000
-var listener = app.listen(process.env.PORT || 3000, function () {
+const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });
